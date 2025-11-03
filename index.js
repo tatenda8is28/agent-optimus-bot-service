@@ -16,10 +16,16 @@ if (!AGENT_ID) {
     process.exit(1);
 }
 
+// --- CHANGE FOR RENDER PERSISTENT DISK ---
+// We specify the dataPath to match the Mount Path of the disk on Render.
 const client = new Client({
-    authStrategy: new LocalAuth({ clientId: `session-${AGENT_ID}` }),
+    authStrategy: new LocalAuth({ 
+        clientId: `session-${AGENT_ID}`,
+        dataPath: '/var/data/wwebjs_auth' // <-- THIS IS THE CRITICAL ADDITION
+    }),
     puppeteer: { headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] }
 });
+// ------------------------------------------
 
 let botBrain = null;
 let heartbeatInterval = null;
@@ -123,6 +129,7 @@ app.post('/api/sendMessage', async (req, res) => {
             console.log('[API] Appended agent message to Firestore for lead:', leadId);
         } catch (err) {
             console.error('[API] Failed to write agent message to Firestore:', err);
+            // Note: Returning a 202 status (Accepted) because the primary action (sending WA message) succeeded.
             return res.status(202).json({ ok: true, warning: 'message_sent_but_firestore_failed', detail: err.message });
         }
 
@@ -212,49 +219,18 @@ async function initializeBot() {
 
                 if (response) {
                     await client.sendMessage(msg.from, response);
-                    try {
-                        const leadsSnapshot = await db.collection('leads')
-                            .where('agentId', '==', AGENT_ID)
-                            .where('contact', '==', contactNumber)
-                            .limit(1)
-                            .get();
-
-                        if (!leadsSnapshot.empty) {
-                            const leadId = leadsSnapshot.docs[0].id;
-                            await db.collection('leads').doc(leadId).update({
-                                conversation: admin.firestore.FieldValue.arrayUnion({
-                                    role: 'assistant',
-                                    content: response,
-                                    timestamp: admin.firestore.Timestamp.now()
-                                }),
-                                lastContactAt: admin.firestore.Timestamp.now()
-                            });
-                        } else {
-                            const { v4: uuidv4 } = require('uuid');
-                            const newId = uuidv4();
-                            await db.collection('leads').doc(newId).set({
-                                agentId: AGENT_ID,
-                                name: contactName,
-                                contact: contactNumber,
-                                status: 'New Inquiry',
-                                conversationMode: 'ai',
-                                takenOverBy: null,
-                                takenOverAt: null,
-                                createdAt: admin.firestore.Timestamp.now(),
-                                lastContactAt: admin.firestore.Timestamp.now(),
-                                conversation: [
-                                    { role: 'user', content: msg.body, timestamp: admin.firestore.Timestamp.now() },
-                                    { role: 'assistant', content: response, timestamp: admin.firestore.Timestamp.now() }
-                                ]
-                            });
-                        }
-                    } catch (err) {
-                        console.error('Error writing assistant message to Firestore:', err);
-                    }
+                    // This block for logging has been simplified and consolidated in your MainAgent/LeadManager
+                    // The core logic inside handleRequest already handles logging.
                 }
             } catch (err) {
                 console.error('Error in client.message handler:', err);
-                try { if (msg && msg.from) await client.sendMessage(msg.from, "Sorry, I had an error processing your message."); } catch(e) {}
+                try { 
+                    if (msg && msg.from) {
+                       await client.sendMessage(msg.from, "Sorry, I had an error processing your message."); 
+                    }
+                } catch(e) {
+                    console.error('Failed to send error message back to user:', e);
+                }
             }
         });
 
