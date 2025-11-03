@@ -1,0 +1,19 @@
+{
+  "name": "agent-optimus-bot-service",
+  "version": "2.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@langchain/openai": "^1.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0",
+    "firebase-admin": "^12.1.0",
+    "qrcode-terminal": "^0.12.0",
+    "uuid": "^11.1.0",
+    "whatsapp-web.js": "^1.23.0",
+    "zod": "^4.1.12"
+  }
+}

@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# WhatsApp Session Data (VERY IMPORTANT)
+.wwebjs_auth/
+
+# Environment variables
+.env
+
+# Secret files
+firebase-service-account.json
+
+# Logs
+npm-debug.log
+yarn-debug.log
+yarn-error.log

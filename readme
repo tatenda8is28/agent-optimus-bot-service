@@ -1,0 +1,10 @@
+WhatsApp Message → index.js → MainAgent (Router) + memory injection / conversation summary 
+
+                                    ↓
+                    ┌───────────────┼───────────────┐
+                    ↓               ↓               ↓
+               SalesAgent    PropertyAgent   BookingAgent
+                    ↓               ↓               ↓
+                LeadManager    Firestore Query   (Missing)
+                    ↓
+                Firestore
