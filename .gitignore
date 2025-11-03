@@ -3,6 +3,7 @@ node_modules/
 
 # WhatsApp Session Data (VERY IMPORTANT)
 .wwebjs_auth/
+.wwebjs_cache/
 
 # Environment variables
 .env
